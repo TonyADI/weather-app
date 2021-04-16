@@ -10,15 +10,15 @@ export const SearchBar = props => {
 
     const handleKeyPress = e => {
         if(e.which === 13){
-            const capitalizedTerm = term.charAt(0).toUpperCase() + term.slice(1)
-            props.handleSearch(capitalizedTerm)
+            props.handleSearch(term)
         }
     }
     return(
         <div className="search-container">
             <i className="fa fa-search icon"></i>
-            <input value={term} placeholder="Enter City" 
-            onChange={handleChange} className="search-bar" onKeyPress={handleKeyPress}></input>
+            <input value={term} placeholder="Enter City..." 
+            onChange={handleChange} className="search-bar" 
+            onKeyPress={handleKeyPress}></input>
         </div>
     )
 }
