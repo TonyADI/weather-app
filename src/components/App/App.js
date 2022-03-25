@@ -1,5 +1,6 @@
-import React from 'react';
-import './App.css';
+import { useState, useEffect } from 'react';
+import { DaysList } from './DaysList';
+import { WeatherInfo } from './WeatherInfo';
 import { getForecast } from '../../util/OpenWeather';
 import { locationIQ } from '../../util/LocationIQ';
 import { SearchBar } from '../SearchBar/SearchBar';
@@ -7,50 +8,50 @@ import snow from '../../util/images/snow.jfif';
 import clear from '../../util/images/clear.jfif';
 import clouds from '../../util/images/cloudy.jfif';
 import rain from '../../util/images/rain.jfif';
+import './App.css';
 
-class App extends React.Component{
-    constructor(props){
-      super(props);
+const App = () => {
+    const [temperature, setTemperature] = useState('');
+    const [city, setCity] = useState('');
+    const [condition, setCondition] = useState('');
+    const [time, setTime] = useState('');
+    const [imageUrl, setImageUrl] = useState(clear);
+    const [color, setColor] = useStae('#fff');
+    const [days, setDays] = useState([]);
       this.state = {temperature: '', city: '', condition: '', time: '', 
       imageUrl:clear, color: '#fff', firstDay: {}, secondDay: {}, thirdDay: {}, 
-      fourthDay: {}, fifthDay: {}, lat: '', lon: ''}
-      this.setCondition = this.setCondition.bind(this);
-      this.clock = this.clock.bind(this);
-      this.setBackground = this.setBackground.bind(this);
-      this.handleForecast = this.handleForecast.bind(this);
-      this.handleSearch = this.handleSearch.bind(this);
+      fourthDay: {}, fifthDay: {}}
+
+    const startClock = () => {
+      let time = new Date().toLocaleTimeString();
+      setTime(time);
     }
 
-    setCondition(cond){
-      this.setState({condition: cond})
-    }
-
-    clock(){
-      let date = new Date();
-      let time = date.toLocaleTimeString();
-      this.setState({time: time})
-    }
-
-    setBackground(){
-      switch(this.state.condition){
+    const setBackground = () => {
+      switch(condition){
         case 'Clouds':
-          this.setState({imageUrl:clouds, color:'#fff'});
+          setImageUrl(clouds);
+          setColor('#fff');
           break;
         case 'Clear':
-          this.setState({imageUrl:clear, color: '#fff'});
+          setImageUrl(clear)
+          setColor('#fff');
           break;
         case 'Snow':
-          this.setState({imageUrl:snow, color: '#000'});
+          setImageUrl(snow)
+          setColor('#fff');
           break;
         case 'Rain':
-          this.setState({imageUrl:rain, color: '#fff'})
+          setImageUrl(rain);
+          setColor('#fff');
         break;
         default:
-          this.setState({imageUrl:clear});
+          setImageUrl(clear);
+          setColor('#fff');
       }
     }
 
-    getMinTemp(list){
+    const getMinTemp = list => {
       let min = Number.MAX_VALUE;
       for(let i = 0; i < 8; i++){
         if(list[i].main.temp < min){
@@ -60,7 +61,7 @@ class App extends React.Component{
       return min;
     }
 
-    getMaxTemp(list){
+    const getMaxTemp = list => {
       let max = 0;
       for(let i = 0; i < 8; i++){
         if(list[i].main.temp > max){
@@ -70,7 +71,7 @@ class App extends React.Component{
       return max;
     }
 
-    getCondition(list){
+    const getCondition = list => {
       let frequency = {};
       let max = 0;
       let condition;
@@ -85,9 +86,10 @@ class App extends React.Component{
       return condition;
     }
 
-    handleForecast (long, lat){
+    const handleForecast = (long, lat) => {
       if(long && lat){
         getForecast(long, lat).then(forecast => {
+          setCity(forecast.city);
           this.setState({city: forecast.city, temperature: Math.floor(forecast.forecasts[0].main.temp), 
             condition: forecast.forecasts[0].weather[0].main, 
           firstDay: {max: Math.floor(this.getMaxTemp(forecast.forecasts.slice(0,8))), min:
@@ -114,24 +116,25 @@ class App extends React.Component{
     }
     }
 
-    handleSearch(term){
+    const handleSearch = term => {
       locationIQ.search(term).then(coords => {
-        this.handleForecast(coords.lon, coords.lat);
+        handleForecast(coords.lon, coords.lat);
       })
     }
 
-    componentDidMount(){
-       this.myClock = setInterval(this.clock, 0);
-       navigator.geolocation.getCurrentPosition(position => {
-           const longitude = position.coords.longitude; 
-           const latitude = position.coords.latitude;
-           this.handleForecast(longitude, latitude);
-       });
-       
+    useEffect(() => {
+      const myClock = setInterval(startClock, 0);
+      navigator.geolocation.getCurrentPosition(position => {
+          const longitude = position.coords.longitude; 
+          const latitude = position.coords.latitude;
+          handleForecast(longitude, latitude);
+      });
+      
       const today = new Date(); 
       const year = today.getFullYear();
       const month = today.getMonth();
       const day = today.getDate();
+
       document.getElementById('first-day').innerHTML = 
       new Date(year, month, day + 1).toLocaleString('en-us', {weekday:'long'});
       document.getElementById('second-day').innerHTML = 
@@ -142,82 +145,35 @@ class App extends React.Component{
       new Date(year, month, day + 4).toLocaleString('en-us', {weekday:'long'});
       document.getElementById('fifth-day').innerHTML = 
       new Date(year, month, day + 5).toLocaleString('en-us', {weekday:'long'});
-    }
 
-    componentDidUpdate(prevProps, prevState){
-      if(prevState.condition !== this.state.condition){
-        this.setBackground();
-      }
-    }
+      return () => {
+          clearInterval(myClock);
+        }
+      }, [])
 
-    componentWillUnmount(){
-      clearInterval(this.myClock);
-    }
+    useEffect(() => {
+      setBackground();
+    }, [condition]);
 
-    render(){
-      return (
-        <div className="body" style={{color: this.state.color, backgroundImage: 
-        `url(${this.state.imageUrl})`}}>
+    return (
+      <div className="body" 
+           style={{color: color, backgroundImage: `url(${imageUrl})`}}>
           <main>
-            <div className="header">
-              <span id="clock">{this.state.time}</span>
-              <SearchBar handleSearch={this.handleSearch}/>
-            </div>
-            <div id="weather-info">
-              <div><span id="temperature">{`${this.state.temperature}°`}</span></div>
-              <div><span id="city">{this.state.city}</span></div>
-              <div>{this.state.condition}</div>
-            </div>
-            <div id="days">
-                <div className="day"><span id="first-day"></span>
-                  <div>
-                    {this.state.firstDay ? `${this.state.firstDay.max}°/ 
-                    ${this.state.firstDay.min}°` : ''}
-                  </div>
-                  <div>
-                    {this.state.firstDay && this.state.firstDay.condition}
-                  </div>
-                </div>
-                <div className="day"><span id="second-day"></span>
-                  <div>
-                    {this.state.secondDay ? `${this.state.secondDay.max}°/
-                    ${this.state.secondDay.min}°` : ''}
-                  </div>
-                  <div>
-                    {this.state.secondDay && this.state.secondDay.condition}
-                  </div>
-                </div>
-                <div className="day"><span id="third-day"></span>
-                  <div>
-                    {this.state.thirdDay ? `${this.state.thirdDay.max}°/
-                    ${this.state.thirdDay.min}°` : ''}
-                  </div>
-                  <div>
-                    {this.state.thirdDay && this.state.thirdDay.condition}
-                  </div>
-                </div>
-                <div className="day"><span id="fourth-day"></span>
-                  <div>
-                    {this.state.fourthDay ? `${this.state.fourthDay.max}°/
-                    ${this.state.fourthDay.min}°` : ''}
-                  </div>
-                  <div>
-                    {this.state.fourthDay && this.state.fourthDay.condition}
-                  </div>
-                </div>
-                <div className="day"><span id="fifth-day"></span>
-                  <div>
-                    {this.state.fifthDay ? `${this.state.fifthDay.max}°/ 
-                    ${this.state.fifthDay.min}°` : ''}
-                  </div>
-                  <div>
-                    {this.state.fifthDay && this.state.fifthDay.condition}
-                  </div>
-                </div>
-            </div>
-          </main>
+              <div className="header">
+                  <span id="clock">
+                      {time}
+                  </span>
+                  <SearchBar handleSearch={handleSearch}/>
+              </div>
+              <WeatherInfo 
+                condition={condition}
+                city={city}
+                temperature={temperature}
+              />
+              <DaysList days={days}/>
+            </main>
         </div>
       );
-  }
 }
+
 export default App;
