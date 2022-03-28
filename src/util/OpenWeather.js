@@ -18,6 +18,21 @@ const getMaxTemp = list => {
     return max;
 }
 
+const getCondition(list){
+      let frequency = {};
+      let max = 0;
+      let condition;
+      for(let index in list) {
+        frequency[list[index].weather[0].main] = 
+        (frequency[list[index].weather[0].main] || 0) + 1;
+        if(frequency[list[index].weather[0].main] > max) {
+          max = frequency[list[index].weather[0].main];
+          condition = list[index].weather[0].main;
+        }
+      }
+      return condition;
+}
+
 export const getForecast = (long, lat) => {
     return fetch(`https://community-open-weather-map.p.rapidapi.com/forecast?units=metric&lat=${lat}&lon=${long}`, {
         "method": "GET",
@@ -36,19 +51,24 @@ export const getForecast = (long, lat) => {
         return jsonResponse.list ? 
                                     {city: jsonResponse.city, temp: jsonResponse.list[0].main.temp, 
                                      condition: jsonResponse.list[0].weather[0].main, days: [
-                                        {firstDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(0, 8))),
+                                        {firstDay: {condition: getCondition(jsonResponse.list.slice(0, 8),
+                                            min: Math.floor(getMinTemp(jsonResponse.list.slice(0, 8))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(0, 8)))}},
 
-                                        {secondDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(8, 16))),
+                                        {secondDay: {getCondition(jsonResponse.list.slice(8, 16),
+                                            min: Math.floor(getMinTemp(jsonResponse.list.slice(8, 16))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(8, 16)))}},
 
-                                        {thirdDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(16, 24))),
+                                        {thirdDay: {getCondition(jsonResponse.list.slice(16, 24),
+                                            min: Math.floor(getMinTemp(jsonResponse.list.slice(16, 24))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(16, 24)))}},
 
-                                        {fourthDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(24, 32))),
+                                        {fourthDay: {getCondition(jsonResponse.list.slice(24, 32),
+                                            min: Math.floor(getMinTemp(jsonResponse.list.slice(24, 32))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(24, 32)))}},
 
-                                        {fifthDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(32, 40))),
+                                        {fifthDay: {getCondition(jsonResponse.list.slice(32, 40),
+                                            min: Math.floor(getMinTemp(jsonResponse.list.slice(32, 40))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(32, 40)))}},
 
                                     ]} : 
