@@ -34,7 +34,8 @@ export const getForecast = (long, lat) => {
     })
     .then(jsonResponse => {
         return jsonResponse.list ? 
-                                    {city: jsonResponse.city, days: [
+                                    {city: jsonResponse.city, temp: jsonResponse.list[0].main.temp, 
+                                     condition: jsonResponse.list[0].weather[0].main, days: [
                                         {firstDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(0, 8))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(0, 8)))}},
 
