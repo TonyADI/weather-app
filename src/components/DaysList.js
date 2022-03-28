@@ -5,7 +5,6 @@ export const DaysList = props => {
             {props.days ? 
                 props.days.map(day => {
                     return <Day 
-                                condition={props.condition}
                                 max={props.max}
                                 min={props.min}
                     />}) : 
