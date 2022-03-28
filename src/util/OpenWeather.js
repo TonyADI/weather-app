@@ -1,23 +1,3 @@
-const getMinTemp = list => {
-    let min = Number.MAX_VALUE;
-    for(let i = 0; i < 8; i++){
-      if(list[i].main.temp < min){
-          min = list[i].main.temp;
-      }
-    }
-    return min;
-  }
-
-const getMaxTemp = list => {
-    let max = 0;
-    for(let i = 0; i < 8; i++){
-      if(list[i].main.temp > max){
-          max = list[i].main.temp;
-      }
-    }
-    return max;
-}
-
 export const getForecast = (long, lat) => {
     return fetch(`https://community-open-weather-map.p.rapidapi.com/forecast?units=metric&lat=${lat}&lon=${long}`, {
         "method": "GET",
@@ -33,33 +13,15 @@ export const getForecast = (long, lat) => {
         throw new Error('Request was not successful.')
     })
     .then(jsonResponse => {
-        return jsonResponse.list ? 
-                                    {city: jsonResponse.city, temp: jsonResponse.list[0].main.temp, 
-                                     condition: jsonResponse.list[0].weather[0].main, days: [
-                                        {firstDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(0, 8))),
-                                            max: Math.floor(getMaxTemp(jsonResponse.list.slice(0, 8)))}},
-
-                                        {secondDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(8, 16))),
-                                            max: Math.floor(getMaxTemp(jsonResponse.list.slice(8, 16)))}},
-
-                                        {thirdDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(16, 24))),
-                                            max: Math.floor(getMaxTemp(jsonResponse.list.slice(16, 24)))}},
-
-                                        {fourthDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(24, 32))),
-                                            max: Math.floor(getMaxTemp(jsonResponse.list.slice(24, 32)))}},
-
-                                        {fifthDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(32, 40))),
-                                            max: Math.floor(getMaxTemp(jsonResponse.list.slice(32, 40)))}},
-
-                                    ]} : 
-             {}
+        return jsonResponse.city ? {city: jsonResponse.city.name, 
+            forecasts: jsonResponse.list} : null
     })
     .catch(err => {
         console.error(err);
     });
 }
 
-const searchForecast = async city => {
+export const searchForecast = async city => {
     try{
         let uriEncodedCity = encodeURIComponent(city);
         let response = await fetch(`https://community-open-weather-map.p.rapidapi.com/weather?q=${uriEncodedCity}&units=metric`, {
@@ -74,7 +36,7 @@ const searchForecast = async city => {
             return jsonResponse ? {city: city, 
                 condition: jsonResponse.weather[0].main, 
                 temp: jsonResponse.main.temp} 
-                : {};
+                : null;
         }
         throw new Error('Request was not successful.')
     }
