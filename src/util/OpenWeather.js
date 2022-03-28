@@ -34,7 +34,7 @@ export const getForecast = (long, lat) => {
     })
     .then(jsonResponse => {
         return jsonResponse.list ? 
-                                    [
+                                    {city: jsonResponse.city, days: [
                                         {firstDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(0, 8))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(0, 8)))}},
 
@@ -50,8 +50,8 @@ export const getForecast = (long, lat) => {
                                         {fifthDay: {min: Math.floor(getMinTemp(jsonResponse.list.slice(32, 40))),
                                             max: Math.floor(getMaxTemp(jsonResponse.list.slice(32, 40)))}},
 
-                                    ] : 
-                                []
+                                    ]} : 
+             {}
     })
     .catch(err => {
         console.error(err);
